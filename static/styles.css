@@ -1,0 +1,198 @@
+body {
+    background: mintcream;
+    margin: 0;
+}
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: transparent;
+}
+
+li {
+    float: left;
+}
+
+li a {
+    display: block;
+    color: #777777;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+li a:hover:not(.active) {
+    background-color: transparent;
+}
+
+.btn.btn-primary.btn-lg #myButton {
+    width: 150px;
+    height: 40px;
+    text-align: center;
+    text-anchor: middle;
+
+}
+
+.active {
+    background-color: #4CAF50;
+}
+
+.right-1 {
+    float: right !important;
+}
+
+.login {
+    width: 50%;
+    float: left;
+    height: 100vh;
+
+    margin: 0;
+    padding: 0;
+}
+
+.description {
+    width: 50%;
+    float: left;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+
+}
+
+.uranus-logo {
+    margin-top: 10%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 40%;
+    height: 40%;
+}
+
+.jumbotron.jumbotron-fluid {
+    margin-top: 1%;
+    text-align: center;
+    background: mintcream;
+}
+
+.Login {
+    margin-left: 30%;
+}
+
+.username-login-input {
+    margin-right: 20px;
+    float: left;
+}
+
+
+input {
+    width: 150px;
+    height: 40px;
+}
+
+
+.text-input {
+    margin-top: 2px;
+}
+
+.register {
+    margin-top: 20%;
+}
+
+.small-uranus {
+    margin-left: 30%;
+    width: 4%;
+    height: 4%;
+
+}
+
+.display-1 {
+    margin-left: 30%;
+}
+
+
+.registeration {
+    width: 50%;
+    float: right;
+    height: 100vh;
+
+    margin: 0;
+    padding: 0;
+}
+
+.dropdown-menu {
+
+    float: left;
+}
+
+.dropdown-item{
+    float: none;
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;}
+
+.btn-primary-1{
+    color: #777777;
+    background: transparent;
+    display: block;
+    float: right;
+    margin-top: 0.4%;
+}
+
+.btn-primary-2{
+    color: black;
+    background: transparent;
+    display: inline-block;
+    margin-left: 1%;
+    margin-bottom: 3%;
+}
+
+.personal-projects{
+    height: 50%;
+}
+.team-projects{
+    height: 50%;
+}
+
+.center {
+    margin: auto;
+    width: 60%;
+    padding: 20px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.hideform {
+    display: none;
+}
+
+.btn.btn-secondary.dropdown-toggle-2{
+display: inline-block;
+}
+.dropdown{
+    display: inline-block;
+    margin-left: 2%;
+}
+
+
+
+.dropdown li{
+    margin-top: 10%;
+    height: auto;
+    width: auto;
+}
+
+
+
+.dropdown-menu-1{
+    width: 25%;
+    height: 35%;
+}
+
+
+
+.charts{
+    background: black;
+}
