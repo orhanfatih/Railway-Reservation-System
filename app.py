@@ -1,6 +1,6 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, url_for
 from datetime import datetime
-import mysql.connector
+import psycopg2
 import re
 import bcrypt
 
@@ -8,10 +8,10 @@ app = Flask(__name__)
 
 app.secret_key = "secret"
 
-database = mysql.connector.connect(
-    host="localhost", user="root", password="mysql-18", database="raildb"
+# Establish the PostgreSQL connection
+database = psycopg2.connect(
+    host="localhost", user="postgres", password="postgres-18", database="raildb"
 )
-
 cursor = database.cursor()
 
 
@@ -24,7 +24,6 @@ def main():
             return render_template("newmain.html")
 
     else:
-        print("HOW IT IS HERE")
         return render_template("search_results.html")
 
 
@@ -37,6 +36,7 @@ def hash_password(password):
 
 def verify_password(password, hashed_password):
     # Verify the password against the hashed password
+    hashed_password = bytes(hashed_password)
     return bcrypt.checkpw(password.encode("utf-8"), hashed_password)
 
 
@@ -60,7 +60,7 @@ def signup():
         confirm_password = request.form["confirm_password"]
         phone_number = request.form["phone_number"]
 
-        cursor.execute("select * from Account where Email = %s", (mail,))
+        cursor.execute("SELECT * FROM account WHERE email = %s", (mail,))
         account = cursor.fetchone()
 
         if account:
@@ -78,19 +78,16 @@ def signup():
         else:
             # register and persist credientials to db
             password_hash = hash_password(password)
-            print(
-                name,
-                surname,
-                mail,
-                phone_number,
-                password,
-                confirm_password,
-                password_hash,
-            )
             cursor.execute(
-                "insert into Account(Name, Last_Name, Email, Phone_Number, Password_Hash)"
-                "values(%s,%s,%s,%s,%s)",
-                (name, surname, mail, phone_number, password_hash),
+                "INSERT INTO account (name, last_name, email, phone_number, password_hash)"
+                "VALUES (%s,%s,%s,%s,%s)",
+                (
+                    name,
+                    surname,
+                    mail,
+                    phone_number,
+                    password_hash,
+                ),
             )
             database.commit()
 
@@ -111,11 +108,10 @@ def login():
         mail = request.form["mail"]
         password = request.form["password"]
         cursor.execute(
-            "select * from Account where Email = %s",
+            "SELECT * FROM account WHERE email = %s",
             (mail,),
         )
         account = cursor.fetchone()
-
         if account and verify_password(password, account[5]):
             session["logged_in"] = True
             session["id"] = account[0]
@@ -126,12 +122,10 @@ def login():
 
         else:
             msg = "Wrong mail address or password!"
-            print("Wrong mail address or password!")
 
     return render_template("login.html", msg=msg)
 
 
-# logout icin bir app, session['logged_in] = false yapicak. Sonra maine yonlendir.
 @app.route("/login/logout")
 def logout():
     session.pop("logged_in", None)
@@ -151,7 +145,7 @@ def results():
             # number_of_passenger = request.form["number_of_passenger"]
 
             cursor.execute(
-                "select * from Trip where Departure_Location = %s and Destination_Location = %s and Departure_Date = %s",
+                "SELECT * FROM trip WHERE departure_location = %s AND destination_location = %s and departure_date = %s",
                 [from_point, to_point, date_object],
             )
             results = cursor.fetchall()
@@ -168,53 +162,40 @@ def results():
 def reservations():
     if request.method == "POST":
         selected_trip_id = request.form["selected_trip"]
-        # first check if the trip_id exist and correct
-        # get the trip status, check
-        # if ok, add trip to reservations
-        # else , return err
-
-        # cursor.execute("select * from Trip where Trip_ID = %s", ([selected_trip_id]))
-        # selected_trip = cursor.fetchone()
-        # print("trip information", id, "and train id equals to:", selected_trip[7])
-        # train_id = selected_trip[7]
-
         cursor.execute(
-            "select * from Trip_Status where Trip_ID = %s", ([selected_trip_id])
+            "SELECT * FROM trip_status WHERE trip_id = %s",
+            (selected_trip_id,),
         )
         selected_trip = cursor.fetchone()
 
-        print("this is trip_status information for train capacity", selected_trip)
-        if selected_trip[2] < 1:  # if trip is full, gives warning
+        if selected_trip[2] < 1:
             msg = "this trip if full"
             return render_template("reservations.html", name=session["name"], mgs=msg)
-        else:  # if trip is available, reserves a seat and updating trip information
+        else:
             booked_seats = selected_trip[1] + 1
             available_seats = selected_trip[2] - 1
-            print(booked_seats, available_seats, selected_trip_id)
             cursor.execute(
-                "update Trip_Status set Total_Booked_Seats = %s, Total_Available_Seats = %s where Trip_ID = %s",
-                [booked_seats, available_seats, selected_trip_id],
+                "UPDATE trip_status SET total_booked_seats = %s, total_available_seats = %s WHERE trip_id = %s",
+                (booked_seats, available_seats, selected_trip_id),
             )
             database.commit()
 
         cursor.execute(
-            "insert into Reservation(Account_ID, Trip_ID)" "values(%s,%s)",
-            [session["id"], selected_trip_id],
+            "INSERT INTO reservation (account_id, trip_id) VALUES (%s, %s)",
+            (session["id"], selected_trip_id),
         )
         database.commit()
 
-        return render_template("reservations.html", name=session["name"])
+        return redirect(url_for("reservations"))
 
     elif request.method == "GET":
         cursor.execute(
-            "select * from Reservation where Account_ID = %s", ([session["id"]])
+            "SELECT * FROM reservation WHERE account_id = %s", (session["id"],)
         )
         res = cursor.fetchall()
-
-        # collect trip information
         trips = []
         for trip in res:
-            cursor.execute("select * from Trip where Trip_ID = %s", ([trip[2]]))
+            cursor.execute("SELECT * FROM trip WHERE trip_id = %s", (trip[2],))
             current_trip = cursor.fetchone()
 
             temp_list = []
@@ -229,34 +210,32 @@ def reservations():
 @app.route("/delete", methods=["POST"])
 def delete():
     if request.method == "POST":
-        # check if the deletion of the requested PNR number is valid and exists in reservations
         cancel_trip_pnr_string = request.form["delete"]
         pnr_cancel_request = int(cancel_trip_pnr_string)
 
         cursor.execute(
-            "select * from Reservation where PNR = %s",
-            [pnr_cancel_request],
+            "SELECT * FROM reservation WHERE pnr = %s",
+            (pnr_cancel_request,),
         )
         trip_id = cursor.fetchone()[2]
 
         cursor.execute(
-            "delete from Reservation where PNR = %s",
-            [pnr_cancel_request],
+            "DELETE FROM reservation WHERE pnr = %s",
+            (pnr_cancel_request,),
         )
         database.commit()
 
-        # update the trip_status info
         cursor.execute(
-            "select * from Trip_Status where Trip_ID = %s",
-            [trip_id],
+            "SELECT * FROM trip_status WHERE trip_id = %s",
+            (trip_id,),
         )
         previous_trip_status = cursor.fetchone()
 
         total_booked_seats = previous_trip_status[1] - 1
         total_available_seats = previous_trip_status[2] + 1
         cursor.execute(
-            "update Trip_Status set Total_Booked_Seats = %s, Total_Available_Seats = %s where trip_id = %s",
-            [total_booked_seats, total_available_seats, trip_id],
+            "UPDATE trip_status SET total_booked_seats = %s, total_available_seats = %s WHERE trip_id = %s",
+            (total_booked_seats, total_available_seats, trip_id),
         )
         database.commit()
 
