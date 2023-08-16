@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block navbar_buttons %}<button type="button" class="btn btn-primary-1" ><a
+                    href="/signup">Sign Up</a></button>
+<button type="button" class="btn btn-primary-1" ><a
+                    href="/login">Log In</a></button>{% endblock %}
+
+{% block content %}
+    <form action="/search/results" method = "post">
+
+{#    <label for="from_point">From:</label><br>#}
+{#    <input style=" margin-top: 5px" type="text" id="from_point" name = 'from_point'><br>#}
+
+  <label style=" margin-top: 5px" for="from_point">From:</label><br>
+  <input list="stations" name="from_point" id="from_point">
+  <datalist id="stations">
+    <option value="Istanbul">
+    <option value="Izmir">
+    <option value="Ankara">
+    <option value="Konya">
+    <option value="Eskisehir">
+    <option value="Sivas">
+  </datalist><br>
+{#  <input type="submit">#}
+
+    <label style=" margin-top: 10px" for="to_point">To:</label><br>
+{#    <input style=" margin-top: 5px" type="text" id="to_point" name = 'to_point'><br>#}
+    <input style=" margin-top: 5px" list="stations" name="to_point" id="to_point"><br>
+
+
+    <label style=" margin-top: 10px" for="date">Date:</label><br>
+    <input style=" margin-top: 5px" type="date" id="date" name="date"><br>
+
+    <button style=" margin-top: 12px" type="submit" >Search</button><br>
+
+</form>{% endblock %}
